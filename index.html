@@ -2,32 +2,23 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tez AR Projesi</title>
-    
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.13/lottie.min.js"></script>
-
     <style>
-        /* Ekrandaki "Yükleniyor" veya "Başlat" yazısı için basit stil */
         #start-button {
-            position: fixed; top: 10px; left: 10px; z-index: 999;
-            padding: 10px; background: #000; color: #fff; border: none; border-radius: 5px;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 999; padding: 20px; background: #28a745; color: white; border-radius: 10px;
         }
     </style>
 </head>
 <body>
+    <button id="start-button">AR DENEYİMİNİ BAŞLAT</button>
 
-    <button id="start-button">AR Deneyimini Başlat</button>
-
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: false;" embedded vr-mode-ui="enabled: false">
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
         <a-entity id="istasyon-tabelasi" mindar-image-target="targetIndex: 0">
-            
-            <a-plane id="lottie-plane" position="0 0 0" height="1" width="1" material="transparent: true; opacity: 0"></a-plane>
-
-            <a-text id="tren-bilgi" value="Veri yukleniyor..." position="-0.5 -0.7 0.1" color="white" width="2" align="center" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+            <a-plane id="lottie-plane" position="0 0 0" material="transparent: true; opacity: 1"></a-plane>
         </a-entity>
     </a-scene>
 
@@ -35,52 +26,32 @@
         const startButton = document.querySelector('#start-button');
         const sceneEl = document.querySelector('a-scene');
 
-        // Kullanıcı butona basınca AR sahnesini aktifleştir
         startButton.addEventListener('click', () => {
-            startButton.style.display = 'none';
+            // Sistemin varlığını kontrol et ve başlat
+            if (sceneEl.systems['mindar-image-system']) {
+                sceneEl.systems['mindar-image-system'].start();
+                startButton.style.display = 'none';
+            } else {
+                alert("Sistem henüz hazır değil. Lütfen 3 saniye bekleyip tekrar basın.");
+            }
         });
 
-        // 3. Lottie Animasyonunu Hazırlama
+        // Lottie ve Texture İşlemleri (Aynı kalıyor)
         const animation = lottie.loadAnimation({
-            container: document.createElement('div'), // Görünmez bir yerde oluştur
+            container: document.createElement('div'),
             renderer: 'canvas',
             loop: true,
             autoplay: true,
-            path: 'animasyon.json' // After Effects'ten gelen dosyan
+            path: 'animasyon.json' 
         });
 
-        // Animasyon karesini AR içindeki düzleme aktaran fonksiyon
         animation.addEventListener('DOMLoaded', function() {
             const canvas = animation.renderer.canvas;
             const mesh = document.querySelector('#lottie-plane').getObject3D('mesh');
             const texture = new THREE.CanvasTexture(canvas);
-            
-            // Her karede dokuyu güncelle (Akıcı animasyon için)
-            function update() {
-                texture.needsUpdate = true;
-                requestAnimationFrame(update);
-            }
+            function update() { texture.needsUpdate = true; requestAnimationFrame(update); }
             mesh.material.map = texture;
-            mesh.material.opacity = 1;
             update();
-        });
-
-        // 4. Canlı Veri Çekme (Simüle edilmiş veya tren_saatleri.json'dan)
-        async function veriyiGuncelle() {
-            try {
-                const response = await fetch('tren_saatleri.json');
-                const data = await response.json();
-                const metin = `Tren: ${data.peron1.isim}\nSaat: ${data.peron1.saat}\nDurum: ${data.peron1.durum}`;
-                document.querySelector('#tren-bilgi').setAttribute('value', metin);
-            } catch (e) {
-                // Eğer json dosyası yoksa demo veri yaz
-                document.querySelector('#tren-bilgi').setAttribute('value', "Adapazari Ekspresi\n14:20 - Zamaninda");
-            }
-        }
-
-        // Tabela her göründüğünde veriyi tazele
-        document.querySelector('#istasyon-tabelasi').addEventListener("targetFound", () => {
-            veriyiGuncelle();
         });
     </script>
 </body>
