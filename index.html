@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tez AR Projesi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tez AR Deneyimi</title>
     
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.13/lottie.min.js"></script>
 
     <style>
-        /* Ekrandaki "Yükleniyor" veya "Başlat" yazısı için basit stil */
+        body { margin: 0; overflow: hidden; }
         #start-button {
-            position: fixed; top: 10px; left: 10px; z-index: 999;
-            padding: 10px; background: #000; color: #fff; border: none; border-radius: 5px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            padding: 20px 40px;
+            font-size: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
     </style>
 </head>
@@ -20,11 +31,57 @@
 
     <button id="start-button">AR Deneyimini Başlat</button>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene 
+        mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;" 
+        embedded 
+        color-space="sRGB" 
+        renderer="colorManagement: true, physicallyCorrectLights" 
+        vr-mode-ui="enabled: false" 
+        device-orientation-permission-ui="enabled: false">
+        
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity id="istasyon-tabelasi" mindar-image-target="targetIndex: 0">
-            
             <a-plane id="lottie-plane" position="0 0 0" height="1" width="1" material="transparent: true; opacity: 0"></a-plane>
+            
+            <a-text id="tren-bilgi" value="Sinyal bekleniyor..." position="0 -0.7 0.1" color="#FFFFFF" width="2" align="center"></a-text>
+        </a-entity>
+    </a-scene>
 
-            <a-text id="tren-bilgi" value="Veri yukleniyor..." position="-0.5 -0.7 0.1" color="white" width="2" align="center" font="https://cdn.a
+    <script>
+        const startButton = document.querySelector('#start-button');
+        const sceneEl = document.querySelector('a-scene');
+
+        // Butona basıldığında AR'ı zorla başlat
+        startButton.addEventListener('click', () => {
+            console.log("AR Başlatılıyor...");
+            const arSystem = sceneEl.systems['mindar-image-system'];
+            if (arSystem) {
+                arSystem.start(); 
+                startButton.style.display = 'none';
+            } else {
+                alert("AR Sistemi henüz yüklenmedi, lütfen sayfayı yenileyip birkaç saniye bekleyin.");
+            }
+        });
+
+        // 1. Lottie Animasyonunu Hazırlama
+        const animation = lottie.loadAnimation({
+            container: document.createElement('div'),
+            renderer: 'canvas',
+            loop: true,
+            autoplay: true,
+            path: 'animasyon.json' 
+        });
+
+        // 2. Animasyonu AR Düzlemine Aktarma
+        animation.addEventListener('DOMLoaded', function() {
+            const canvas = animation.renderer.canvas;
+            
+            // Sahne hazır olduğunda texture atamasını yap
+            const mesh = document.querySelector('#lottie-plane').getObject3D('mesh');
+            const texture = new THREE.CanvasTexture(canvas);
+            
+            function update() {
+                texture.needsUpdate = true;
+                requestAnimationFrame(update);
+            }
