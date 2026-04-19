@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tez AR Projesi</title>
+    
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.13/lottie.min.js"></script>
+
+    <style>
+        /* Ekrandaki "Yükleniyor" veya "Başlat" yazısı için basit stil */
+        #start-button {
+            position: fixed; top: 10px; left: 10px; z-index: 999;
+            padding: 10px; background: #000; color: #fff; border: none; border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="start-button">AR Deneyimini Başlat</button>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-entity id="istasyon-tabelasi" mindar-image-target="targetIndex: 0">
+            
+            <a-plane id="lottie-plane" position="0 0 0" height="1" width="1" material="transparent: true; opacity: 0"></a-plane>
+
+            <a-text id="tren-bilgi" value="Veri yukleniyor..." position="-0.5 -0.7 0.1" color="white" width="2" align="center" font="https://cdn.a
